@@ -1,46 +1,32 @@
-# Base stage
-FROM ghcr.io/astral-sh/uv:python3.13-bookworm-slim AS uv-base
-
+FROM ghcr.io/astral-sh/uv:python3.13-bookworm-slim AS builder
 ENV UV_COMPILE_BYTECODE=1 \
-    UV_LINK_MODE=copy \
-    UV_PYTHON_DOWNLOADS=0
+	UV_LINK_MODE=copy \
+	UV_PYTHON_DOWNLOADS=0
+
 
 WORKDIR /app
-
-# Dev 
-FROM uv-base AS dev
-
-# install all - includes dev
 RUN --mount=type=cache,target=/root/.cache/uv \
-    --mount=type=bind,source=uv.lock,target=uv.lock \
-    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    uv venv && . .venv/bin/activate && uv sync --frozen
+	--mount=type=bind,source=uv.lock,target=uv.lock \
+	--mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+	uv sync --frozen --no-install-project --no-dev
 
 ADD . /app
-
-ENV PATH="/app/.venv/bin:$PATH"
-
-CMD [ "python", "csse3200bot/__main__.py" ]
-
-# Prd Builder
-FROM uv-base AS prod-builder
-
 RUN --mount=type=cache,target=/root/.cache/uv \
-    --mount=type=bind,source=uv.lock,target=uv.lock \
-    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    uv build --verbose
+	uv sync --frozen --no-dev
 
-ADD . /app
-
-# Prod 
-FROM python:3.13-slim-bookworm AS prod
-
-WORKDIR /app
+# Final Image
+FROM python:3.13-slim-bookworm
 
 # Put the app back in
-COPY --from=prod-builder /app /app
+COPY --from=builder --chown=app:app /app /app
 
+WORKDIR /app
+
+# Add to path
 ENV PATH="/app/.venv/bin:$PATH"
-EXPOSE 8080
+ENV PYTHONPATH="/app/src"
 
-ENTRYPOINT ["python", "-m", "csse3200bot"]
+EXPOSE 6400
+
+CMD ["python", "src/csse3200bot/main.py"]
+

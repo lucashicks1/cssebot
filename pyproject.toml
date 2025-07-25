@@ -3,7 +3,7 @@ name = "csse3200bot"
 version = "0.1.0"
 description = "Discord bot for CSSE3200"
 readme = "README.md"
-requires-python = ">=3.13.1"
+requires-python = ">=3.13"
 dependencies = [
     "discord-py>=2.5.2",
     "pydantic-settings>=2.10.1",
