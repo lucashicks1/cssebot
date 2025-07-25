@@ -1,7 +1,9 @@
 [project]
-name = "csse3200-bot"
+name = "csse3200bot"
 version = "0.1.0"
 description = "Discord bot for CSSE3200"
 readme = "README.md"
 requires-python = ">=3.13.4"
-dependencies = []
+
+[dependency-groups]
+dev = ["mypy>=1.17.0", "pytest>=8.4.1", "ruff>=0.12.5"]
