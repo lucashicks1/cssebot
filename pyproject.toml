@@ -3,7 +3,31 @@ name = "csse3200bot"
 version = "0.1.0"
 description = "Discord bot for CSSE3200"
 readme = "README.md"
-requires-python = ">=3.13.4"
+requires-python = ">=3.13.1"
+dependencies = [
+    "discord-py>=2.5.2",
+    "pydantic-settings>=2.10.1",
+]
 
 [dependency-groups]
 dev = ["mypy>=1.17.0", "pytest>=8.4.1", "ruff>=0.12.5"]
+
+[tool.pytest.ini_options]
+pythonpath = "csse3200bot"
+asyncio_mode = "strict"
+asyncio_default_fixture_loop_scope = "function"
+filterwarnings = ["ignore::DeprecationWarning"]
+
+[tool.mypy]
+mypy_path = "csse3200bot"
+
+[tool.ruff]
+target-version = "py313"
+line-length = 120
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = ["D203", "D213", "COM812"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
