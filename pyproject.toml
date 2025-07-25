@@ -1,0 +1,7 @@
+[project]
+name = "csse3200-bot"
+version = "0.1.0"
+description = "Discord bot for CSSE3200"
+readme = "README.md"
+requires-python = ">=3.13.4"
+dependencies = []
