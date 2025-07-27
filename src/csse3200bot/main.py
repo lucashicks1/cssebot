@@ -1,59 +1,53 @@
 """Main module."""
 
+import asyncio
 import logging
 
 import discord
+from sqlalchemy.ext.asyncio import (
+    AsyncEngine,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
 
 from csse3200bot.bot import DiscordBot
 from csse3200bot.config import CONFIG
+from csse3200bot.database.service import initialise_database
+from csse3200bot.logger import configure_logging
 
-logging.basicConfig(level=logging.INFO)
-
-"""
-Setup bot intents (events restrictions)
-For more information about intents, please go to the following websites:
-https://discordpy.readthedocs.io/en/latest/intents.html
-https://discordpy.readthedocs.io/en/latest/intents.html#privileged-intents
-
-
-Default Intents:
-intents.bans = True
-intents.dm_messages = True
-intents.dm_reactions = True
-intents.dm_typing = True
-intents.emojis = True
-intents.emojis_and_stickers = True
-intents.guild_messages = True
-intents.guild_reactions = True
-intents.guild_scheduled_events = True
-intents.guild_typing = True
-intents.guilds = True
-intents.integrations = True
-intents.invites = True
-intents.messages = True # `message_content` is required to get the content of the messages
-intents.reactions = True
-intents.typing = True
-intents.voice_states = True
-intents.webhooks = True
-
-Privileged Intents (Needs to be enabled on developer portal of Discord), please use them only if you need them:
-intents.members = True
-intents.message_content = True
-intents.presences = True
-"""
+# Setting up the intents
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
 
-logger = logging.getLogger("csse3200bot")
-logger.setLevel(logging.DEBUG)
+log = logging.getLogger(__name__)
 
-console_handler = logging.StreamHandler()
-file_handler = logging.FileHandler("discord-bots.log", encoding="utf-8", mode="w")
+db_engine: AsyncEngine = create_async_engine(CONFIG.db_url, pool_pre_ping=True)
+session_factory = async_sessionmaker(
+    db_engine,
+    class_=AsyncSession,
+    expire_on_commit=False,
+)
 
-logger.addHandler(console_handler)
-logger.addHandler(file_handler)
+bot = DiscordBot(session_factory, command_prefix="!", intents=intents)
 
-bot = DiscordBot(command_prefix="!", intents=intents)
 
-bot.run(CONFIG.discord_bot_token, log_handler=None)
+async def main() -> None:
+    """Main function."""
+    configure_logging()
+
+    await initialise_database(db_engine)
+
+    try:
+        await bot.start(CONFIG.discord_bot_token)
+    except KeyboardInterrupt:
+        log.info("Shutting down due to keyboard interrupt")
+        await bot.close()
+    finally:
+        log.info("Disposing of db engine")
+        await db_engine.dispose()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

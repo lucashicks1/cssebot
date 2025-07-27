@@ -4,9 +4,6 @@ services:
       context: .
     env_file:
       - .env
-    environment:
-      - blah=blah
-    restart: "unless-stopped"
     ports:
       - "8080:8080"
     depends_on:
@@ -19,7 +16,7 @@ services:
     container_name: database
     restart: always
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U admin -d expense_db" ]
+      test: [ "CMD-SHELL", "pg_isready -U admin -d bot_db" ]
       interval: 5s
       retries: 5
       start_period: 20s
@@ -32,7 +29,7 @@ services:
       - PGDATA=/var/lib/postgresql/data/pgdata
       - POSTGRES_PASSWORD=password
       - POSTGRES_USER=admin
-      - POSTGRES_DB=expense_db
+      - POSTGRES_DB=bot_db
     ports:
       - 5432:5432
 
