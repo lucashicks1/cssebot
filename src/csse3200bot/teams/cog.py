@@ -7,6 +7,7 @@ from discord import Role, app_commands
 from discord.ext import commands
 
 from csse3200bot.enums import CsseEnum
+from csse3200bot.teams.utils import get_member_team, get_team_roles
 
 log = logging.getLogger(__name__)
 
@@ -46,20 +47,10 @@ class TeamsCog(commands.Cog):
             await interaction.response.send_message("Member not found in this server.", ephemeral=True)
             return
 
-        team_roles = await self._get_team_roles(interaction)
-
-        role_to_assign = discord.utils.get(team_roles, name=team)
-        if role_to_assign is None:
-            await interaction.response.send_message(f"Team role '{team}' not found.", ephemeral=True)
-            return
-
-        # check if already has any team role
-        member_team_roles = [role for role in member.roles if role in team_roles]
-
-        if member_team_roles:
-            existing_teams = ", ".join(r.name for r in member_team_roles)
+        current_team = get_member_team(member)
+        if current_team:
             msg = (
-                f"You've already been assigned to '{existing_teams}'."
+                f"You've already been assigned to '{current_team.name}'."
                 "Ask a tutor to remove it before assigning a new one."
             )
             await interaction.response.send_message(
@@ -68,7 +59,14 @@ class TeamsCog(commands.Cog):
             )
             return
 
-        # Assign the role
+        team_roles = await self._get_team_roles(interaction)
+
+        role_to_assign = discord.utils.get(team_roles, name=team)
+        if role_to_assign is None:
+            await interaction.response.send_message(f"Team role '{team}' not found.", ephemeral=True)
+            return
+
+        # assign the role
         try:
             await member.add_roles(role_to_assign, reason="User assigned self to a team via command")
             await interaction.response.send_message(f"You have been assigned to **{team}**.", ephemeral=True)
@@ -85,7 +83,7 @@ class TeamsCog(commands.Cog):
             await interaction.response.send_message("This command must be used in a server.", ephemeral=True)
             return []
 
-        return [r for r in guild.roles if r.name.startswith("Team")]
+        return get_team_roles(guild)
 
     @assign.autocomplete("team")
     async def assign_autocomplete(self, interaction: discord.Interaction, __: str) -> list[app_commands.Choice[str]]:
