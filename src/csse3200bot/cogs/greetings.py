@@ -25,7 +25,7 @@ class GreetingsCog(commands.Cog):
 
         await ctx.send(f"Hello {member.name}... This feels familiar.")
 
-    @app_commands.command()
+    @app_commands.command(name="test")
     @app_commands.describe(thing_to_say="This is the thing to say")
     async def better_hello(self, interaction: discord.Interaction, thing_to_say: str) -> None:
         """Better hello command."""

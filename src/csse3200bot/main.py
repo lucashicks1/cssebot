@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 
-from csse3200bot.bot import DiscordBot
+from csse3200bot.bot import CSSEBot
 from csse3200bot.config import CONFIG
 from csse3200bot.database.service import initialise_database
 from csse3200bot.logger import configure_logging
@@ -30,7 +30,7 @@ session_factory = async_sessionmaker(
     expire_on_commit=False,
 )
 
-bot = DiscordBot(session_factory, command_prefix="!", intents=intents)
+bot = CSSEBot(session_factory, CONFIG.gh_org_name, CONFIG.gh_token, command_prefix="!", intents=intents)
 
 
 async def main() -> None:
