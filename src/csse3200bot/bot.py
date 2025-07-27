@@ -43,8 +43,10 @@ class CSSEBot(commands.Bot):
         # But then if we do it inside, we've got to pass parameters through bot constructor!!!! - NOT NICE
         from csse3200bot.cogs.greetings import GreetingsCog  # noqa: PLC0415
         from csse3200bot.repo.cog import RepoCog  # noqa: PLC0415
+        from csse3200bot.teams.cog import TeamsCog  # noqa: PLC0415
 
         await self.add_cog(GreetingsCog())
+        await self.add_cog(TeamsCog())
         await self.add_cog(RepoCog(self, self._gh_org_name, self._gh_token))
 
         # Setup some internal state
