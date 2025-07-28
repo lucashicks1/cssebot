@@ -7,10 +7,6 @@ import discord
 log = logging.getLogger(__name__)
 
 
-class ViewDataValidationError(Exception):
-    """Custom validation error."""
-
-
 async def manage_guild_perms_only(interaction: discord.Interaction) -> bool:
     """Ensure only users with Manage Guild permission can use setup."""
     member = interaction.user

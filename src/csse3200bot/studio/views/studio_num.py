@@ -11,26 +11,8 @@ from csse3200bot.studio.views.utils import manage_guild_perms_only
 if TYPE_CHECKING:
     from csse3200bot.studio.views.setup import StudioSetupView
 
-from csse3200bot.studio.views.utils import ViewDataValidationError
 
 log = logging.getLogger(__name__)
-
-
-def validate_studio_number(studio_input: str) -> int:
-    """Validate studio number input."""
-    studio_input = studio_input.strip()
-
-    if not studio_input.isdigit():
-        raise ViewDataValidationError("Studio number must be a positive number")
-
-    studio_num = int(studio_input)
-
-    if studio_num < 1:
-        raise ViewDataValidationError("Studio number must be greater than 0")
-    if studio_num > 999:  # noqa: PLR2004
-        raise ViewDataValidationError("Studio number must be less than 1000")
-
-    return studio_num
 
 
 class StudioNumberSetupView(discord.ui.View):
@@ -52,7 +34,7 @@ class StudioNumberSelect(discord.ui.Select):
     def __init__(self, parent_view: "StudioSetupView") -> None:  # noqa: D107
         self.parent = parent_view
 
-        options = [discord.SelectOption(label=f"Studio {i}", value=str(i)) for i in range(1, constants.NUM_STUDIOS)]
+        options = [discord.SelectOption(label=f"Studio {i}", value=str(i)) for i in range(1, constants.NUM_STUDIOS + 1)]
 
         super().__init__(
             placeholder="Choose your studio number...",

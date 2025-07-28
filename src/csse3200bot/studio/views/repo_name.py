@@ -10,45 +10,43 @@ from csse3200bot.studio.views.utils import manage_guild_perms_only
 if TYPE_CHECKING:
     from csse3200bot.studio.views.setup import StudioSetupView
 
-from csse3200bot.studio.views.utils import ViewDataValidationError
-
 log = logging.getLogger(__name__)
 
 
 class GitHubSetupView(discord.ui.View):
-    """Github repo setup."""
+    """View that displays github repo picker."""
 
-    def __init__(self, parent_view: "StudioSetupView") -> None:  # noqa: D107
+    def __init__(self, parent_view: "StudioSetupView", repo_names: list[str]) -> None:  # noqa: D107
         super().__init__(timeout=300)
         self.parent = parent_view
+        self.add_item(GitHubRepoSelect(parent_view, repo_names))
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         """Checks the perms before doing the interaction."""
         return await manage_guild_perms_only(interaction)
 
-    @discord.ui.button(label="Enter GitHub Repository Name", style=discord.ButtonStyle.primary, emoji="🔗")
-    async def enter_github(self, interaction: discord.Interaction, _: discord.ui.Button) -> None:  # noqa: D102
-        modal = GitHubModal(self.parent)
-        await interaction.response.send_modal(modal)
 
+class GitHubRepoSelect(discord.ui.Select):
+    """Github Repo Dropdown."""
 
-class GitHubModal(discord.ui.Modal):  # noqa: D101
-    def __init__(self, parent_view: "StudioSetupView") -> None:  # noqa: D107
-        super().__init__(title="GitHub Repository")
+    def __init__(self, parent_view: "StudioSetupView", repo_names: list[str]) -> None:  # noqa: D107
         self.parent = parent_view
 
-        self.github_input: discord.ui.TextInput = discord.ui.TextInput(
-            label="GitHub Repository",
-            placeholder="username/repository or full GitHub URL",
-            required=True,
-            max_length=255,
-        )
-        self.add_item(self.github_input)
+        options = [discord.SelectOption(label=repo, value=repo) for repo in repo_names]
 
-    async def on_submit(self, interaction: discord.Interaction) -> None:  # noqa: D102
+        super().__init__(
+            placeholder="Select a Github reository...",
+            options=options,
+        )
+
+    async def callback(self, interaction: discord.Interaction) -> None:
+        """Select callback."""
         try:
-            self.parent.repo_name = self.github_input.value
+            selected_repo = self.values[0]
+            self.parent.repo_name = selected_repo
             await self.parent.next_step(interaction)
-        except ViewDataValidationError as e:
-            await interaction.response.send_message(f"❌ {e!s}", ephemeral=True)
+        except Exception:
+            msg = "Failed to select github repository"
+            log.exception(msg)
+            await interaction.response.send_message(msg, ephemeral=True)
             await self.parent.retry_step(interaction)

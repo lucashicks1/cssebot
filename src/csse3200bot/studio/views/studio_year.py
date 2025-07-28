@@ -11,26 +11,8 @@ from csse3200bot.studio.views.utils import manage_guild_perms_only
 if TYPE_CHECKING:
     from csse3200bot.studio.views.setup import StudioSetupView
 
-from csse3200bot.studio.views.utils import ViewDataValidationError
 
 log = logging.getLogger(__name__)
-
-
-def validate_studio_year(year_input: str) -> int:
-    """Validate studio year input."""
-    year_input = year_input.strip()
-
-    if not year_input.isdigit():
-        raise ViewDataValidationError("Year must be a number")
-
-    year = int(year_input)
-    current_year = datetime.datetime.now(tz=datetime.UTC).year
-
-    if not (current_year - 5 <= year <= current_year):
-        msg = f"Year must be between {current_year - 5} and {current_year}"
-        raise ViewDataValidationError(msg)
-
-    return year
 
 
 class StudioYearSetupView(discord.ui.View):
@@ -67,12 +49,9 @@ class StudioYearSelect(discord.ui.Select):
     async def callback(self, interaction: discord.Interaction) -> None:
         """Callback for select."""
         try:
-            year = validate_studio_year(self.values[0])
+            year = int(self.values[0])
             self.parent.studio_year = year
             await self.parent.next_step(interaction)
-        except ViewDataValidationError as e:
-            await interaction.response.send_message(f"❌ {e!s}", ephemeral=True)
-            await self.parent.retry_step(interaction)
         except Exception:
             msg = "Failed to validate studio year"
             log.exception(msg)

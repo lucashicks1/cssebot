@@ -47,10 +47,7 @@ class StudioCog(commands.Cog):
         # welcome message
         embed = discord.Embed(
             title="Welcome to CSSE Bot!",
-            description=(
-                f"Thanks for adding me to **{guild.name}**!\n\n"
-                "The studio number and GitHub repository is needed to get started!"
-            ),
+            description=(f"Thanks for adding me to **{guild.name}**!\n\n"),
             color=0x7289DA,
         )
         embed.set_footer(text="Click the button below to begin setup")
@@ -106,14 +103,16 @@ class StudioCog(commands.Cog):
             )
         else:
             embed = discord.Embed(
-                title=f"🎓 Studio {studio.studio_number} - {studio.studio_year} Configuration",
+                title=f"🎓 Studio {studio.studio_number} - {studio.studio_year} Bot",
                 description=(
-                    f"**Studio Number:** {studio.studio_number}\n"
-                    f"**GitHub Repo Name:** {studio.repo_name}\n"
-                    f"\n**Updated At:** {studio.updated_at.strftime('%Y-%m-%d %H:%M:%S UTC')}\n\n"
-                    f"\n**Created At:** {studio.created_at.strftime('%Y-%m-%d %H:%M:%S UTC')}\n\n"
+                    f"• Studio Number: {studio.studio_number}\n"
+                    f"• Studio Year: {studio.studio_year}\n"
+                    f"• GitHub Repo Name: {studio.repo_name}\n"
+                    f"• Updated At: {studio.updated_at.strftime('%Y-%m-%d %H:%M:%S UTC')}\n\n"
+                    f"• Created At: {studio.created_at.strftime('%Y-%m-%d %H:%M:%S UTC')}\n\n"
                     "**Available Commands:**\n"
                     "• `/studio_setup` - Reconfigure studio (Admin Only)\n"
+                    "• `/studio_info` - Get studio info\n"
                 ),
                 color=0x7289DA,
             )

@@ -7,6 +7,8 @@ from typing import Any
 
 import discord
 from discord.ext import commands
+from github import Auth, Github
+from github.Organization import Organization
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from csse3200bot.studio.models import StudioModel
@@ -27,9 +29,10 @@ class CSSEBot(commands.Bot):
 
     _sessionmaker: async_sessionmaker
 
-    # For cogs - not a fan of this pattern though
-    _gh_token: str
-    _gh_org_name: str
+    # Github stuff - yes I know, this ideally should be in cog, but used everywhere and referencing
+    # cogs by strings is yuck!!!
+    _org: Organization
+    _gh_client: Github
 
     # studio info
     _studio_cache: AsyncCache[str, StudioModel]  # guild_id -> StudioModel
@@ -45,8 +48,8 @@ class CSSEBot(commands.Bot):
         super().__init__(*args, **kwargs)
         self._sessionmaker = db_sessionmaker
 
-        self._gh_token = gh_token
-        self._gh_org_name = gh_org_name
+        self._gh_client = Github(auth=Auth.Token(gh_token))
+        self._org = self._gh_client.get_organization(gh_org_name)
 
         self._studio_cache = AsyncCache(self._fetch_studio_by_guild_wrapper())
 
@@ -65,7 +68,7 @@ class CSSEBot(commands.Bot):
         await self.add_cog(GreetingsCog())
         await self.add_cog(TeamsCog())
         await self.add_cog(StudioCog(self))
-        await self.add_cog(RepoCog(self, self._gh_org_name, self._gh_token))
+        await self.add_cog(RepoCog(self))
 
         synced_commands = await self.tree.sync()
 
@@ -136,3 +139,13 @@ class CSSEBot(commands.Bot):
             new_studio = await create_studio(session, studio_number, studio_year, repo_name)
             self._studio_cache.set(guild_id, new_studio)
             return new_studio
+
+    @property
+    def github_org(self) -> Organization:
+        """Github org property."""
+        return self._org
+
+    @property
+    def github_client(self) -> Github:
+        """Github client property."""
+        return self._gh_client

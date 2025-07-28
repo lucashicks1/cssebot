@@ -22,7 +22,7 @@ class ViewStep(TypedDict):
     """View step."""
 
     title: str
-    desc: str
+    desc: Callable[[], str]
     view_constructor: Callable[[], discord.ui.View]
 
 
@@ -58,20 +58,30 @@ class StudioSetupView(discord.ui.View):
         self._steps = [
             {
                 "title": "Studio Number",
-                "desc": "What's your studio number?\n\n",
+                "desc": lambda: "What's your studio number?\n\n",
                 "view_constructor": lambda: StudioNumberSetupView(self),
             },
             {
                 "title": "Studio Year",
-                "desc": f"What year is this studio for? (Defaults to {self._current_year})",
+                "desc": lambda: f"What year is this studio for? (Defaults to {self._current_year})",
                 "view_constructor": lambda: StudioYearSetupView(self),
             },
             {
                 "title": "GitHub Repo",
-                "desc": "What's your GitHub repo name?\n\n",
-                "view_constructor": lambda: GitHubSetupView(self),
+                "desc": lambda: "What's your GitHub repo?\n\n",
+                "view_constructor": lambda: GitHubSetupView(
+                    self, [repo.name for repo in self._bot.github_org.get_repos()]
+                ),
             },
-            {"title": "Confirm", "desc": "Confirm", "view_constructor": lambda: ConfirmationView(self)},
+            {
+                "title": "Confirm",
+                "desc": lambda: (
+                    f"**Studio Number:** {self.studio_num}\n"
+                    f"**Studio Year:** {self.studio_year}\n"
+                    f"**GitHub Repo:** [`{self.repo_name}`](https://github.com/{constants.GH_ORG_NAME}/{self.repo_name})\n\n"
+                ),
+                "view_constructor": lambda: ConfirmationView(self),
+            },
         ]
 
     @discord.ui.button(label="Setup Studio", style=discord.ButtonStyle.primary)
@@ -90,7 +100,7 @@ class StudioSetupView(discord.ui.View):
             return
 
         step = self._steps[self._current_step]
-        embed = make_step_embed(self._current_step + 1, step["title"], step["desc"])
+        embed = make_step_embed(self._current_step + 1, step["title"], step["desc"]())
         view = step["view_constructor"]()
         await interaction.response.edit_message(embed=embed, view=view)
 
@@ -102,7 +112,7 @@ class StudioSetupView(discord.ui.View):
 
         try:
             step = self._steps[self._current_step]
-            embed = make_step_embed(self._current_step + 1, step["title"], step["desc"])
+            embed = make_step_embed(self._current_step + 1, step["title"], step["desc"]())
             view = step["view_constructor"]()
             await interaction.response.edit_message(embed=embed, view=view)
 
@@ -160,10 +170,15 @@ class StudioSetupView(discord.ui.View):
                 title="🎉 Studio Setup Complete!",
                 description=(
                     f"**Welcome to Studio {studio.studio_number} - {studio.studio_year}!** 🎓\n\n"
-                    "The bot is now ready and configured!\n\n"
-                    f"**📚 Studio Configuration:**\n"
+                    "The bot is now ready to go!\n\n"
                     f"• Studio Number: {studio.studio_number}\n"
+                    f"• Studio Year: {studio.studio_year}\n"
                     f"• GitHub Repo Name: {studio.repo_name}\n"
+                    f"• Updated At: {studio.updated_at.strftime('%Y-%m-%d %H:%M:%S UTC')}\n\n"
+                    f"• Created At: {studio.created_at.strftime('%Y-%m-%d %H:%M:%S UTC')}\n\n"
+                    "**Available Commands:**\n"
+                    "• `/studio_setup` - Reconfigure studio (Admin Only)\n"
+                    "• `/studio_info` - Get studio info\n"
                 ),
                 color=0x00FF00,
             )
