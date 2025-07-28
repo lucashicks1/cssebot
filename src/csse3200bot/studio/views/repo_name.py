@@ -1,10 +1,16 @@
 """Studio repo name views."""
 
 import logging
+from typing import TYPE_CHECKING
 
 import discord
 
-from csse3200bot.studio.views import StudioSetupView, ValidationError
+from csse3200bot.studio.views.utils import manage_guild_perms_only
+
+if TYPE_CHECKING:
+    from csse3200bot.studio.views.setup import StudioSetupView
+
+from csse3200bot.studio.views.utils import ViewDataValidationError
 
 log = logging.getLogger(__name__)
 
@@ -18,7 +24,7 @@ class GitHubSetupView(discord.ui.View):
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         """Checks the perms before doing the interaction."""
-        return await self.parent.interaction_check(interaction)
+        return await manage_guild_perms_only(interaction)
 
     @discord.ui.button(label="Enter GitHub Repository Name", style=discord.ButtonStyle.primary, emoji="🔗")
     async def enter_github(self, interaction: discord.Interaction, _: discord.ui.Button) -> None:  # noqa: D102
@@ -27,7 +33,7 @@ class GitHubSetupView(discord.ui.View):
 
 
 class GitHubModal(discord.ui.Modal):  # noqa: D101
-    def __init__(self, parent_view: StudioSetupView) -> None:  # noqa: D107
+    def __init__(self, parent_view: "StudioSetupView") -> None:  # noqa: D107
         super().__init__(title="GitHub Repository")
         self.parent = parent_view
 
@@ -43,6 +49,6 @@ class GitHubModal(discord.ui.Modal):  # noqa: D101
         try:
             self.parent.repo_name = self.github_input.value
             await self.parent.next_step(interaction)
-        except ValidationError as e:
+        except ViewDataValidationError as e:
             await interaction.response.send_message(f"❌ {e!s}", ephemeral=True)
             await self.parent.retry_step(interaction)

@@ -1,11 +1,17 @@
 """Studio number views."""
 
 import logging
+from typing import TYPE_CHECKING
 
 import discord
 
 from csse3200bot import constants
-from csse3200bot.studio.views import StudioSetupView, ValidationError
+from csse3200bot.studio.views.utils import manage_guild_perms_only
+
+if TYPE_CHECKING:
+    from csse3200bot.studio.views.setup import StudioSetupView
+
+from csse3200bot.studio.views.utils import ViewDataValidationError
 
 log = logging.getLogger(__name__)
 
@@ -15,14 +21,14 @@ def validate_studio_number(studio_input: str) -> int:
     studio_input = studio_input.strip()
 
     if not studio_input.isdigit():
-        raise ValidationError("Studio number must be a positive number")
+        raise ViewDataValidationError("Studio number must be a positive number")
 
     studio_num = int(studio_input)
 
     if studio_num < 1:
-        raise ValidationError("Studio number must be greater than 0")
+        raise ViewDataValidationError("Studio number must be greater than 0")
     if studio_num > 999:  # noqa: PLR2004
-        raise ValidationError("Studio number must be less than 1000")
+        raise ViewDataValidationError("Studio number must be less than 1000")
 
     return studio_num
 
@@ -37,13 +43,13 @@ class StudioNumberSetupView(discord.ui.View):
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         """Checks the perms before doing the interaction."""
-        return await self.parent.interaction_check(interaction)
+        return await manage_guild_perms_only(interaction)
 
 
 class StudioNumberSelect(discord.ui.Select):
     """Studio Number Dropdown."""
 
-    def __init__(self, parent_view: StudioSetupView) -> None:  # noqa: D107
+    def __init__(self, parent_view: "StudioSetupView") -> None:  # noqa: D107
         self.parent = parent_view
 
         options = [discord.SelectOption(label=f"Studio {i}", value=str(i)) for i in range(1, constants.NUM_STUDIOS)]

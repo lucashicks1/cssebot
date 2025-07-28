@@ -5,8 +5,10 @@ from typing import TYPE_CHECKING
 
 import discord
 
+from csse3200bot.studio.views.utils import manage_guild_perms_only
+
 if TYPE_CHECKING:
-    from csse3200bot.studio.views import StudioSetupView
+    from csse3200bot.studio.views.setup import StudioSetupView
 
 log = logging.getLogger(__name__)
 
@@ -18,7 +20,7 @@ class ConfirmationView(discord.ui.View):  # noqa: D101
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         """Checks the perms before doing the interaction."""
-        return await self.parent.interaction_check(interaction)
+        return await manage_guild_perms_only(interaction)
 
     @discord.ui.button(label="Activate Studio Bot", style=discord.ButtonStyle.success, emoji="🚀")
     async def confirm_setup(self, interaction: discord.Interaction, _: discord.ui.Button) -> None:  # noqa: D102

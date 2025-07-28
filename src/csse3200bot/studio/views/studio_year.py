@@ -2,10 +2,16 @@
 
 import datetime
 import logging
+from typing import TYPE_CHECKING
 
 import discord
 
-from csse3200bot.studio.views import StudioSetupView, ValidationError
+from csse3200bot.studio.views.utils import manage_guild_perms_only
+
+if TYPE_CHECKING:
+    from csse3200bot.studio.views.setup import StudioSetupView
+
+from csse3200bot.studio.views.utils import ViewDataValidationError
 
 log = logging.getLogger(__name__)
 
@@ -15,14 +21,14 @@ def validate_studio_year(year_input: str) -> int:
     year_input = year_input.strip()
 
     if not year_input.isdigit():
-        raise ValidationError("Year must be a number")
+        raise ViewDataValidationError("Year must be a number")
 
     year = int(year_input)
     current_year = datetime.datetime.now(tz=datetime.UTC).year
 
     if not (current_year - 5 <= year <= current_year):
         msg = f"Year must be between {current_year - 5} and {current_year}"
-        raise ValidationError(msg)
+        raise ViewDataValidationError(msg)
 
     return year
 
@@ -30,7 +36,7 @@ def validate_studio_year(year_input: str) -> int:
 class StudioYearSetupView(discord.ui.View):
     """Studio year setup."""
 
-    def __init__(self, parent_view: StudioSetupView) -> None:
+    def __init__(self, parent_view: "StudioSetupView") -> None:
         """Constructor."""
         super().__init__(timeout=300)
         self.parent = parent_view
@@ -38,13 +44,13 @@ class StudioYearSetupView(discord.ui.View):
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         """Checks the perms before doing the interaction."""
-        return await self.parent.interaction_check(interaction)
+        return await manage_guild_perms_only(interaction)
 
 
 class StudioYearSelect(discord.ui.Select):
     """Studio Year Select."""
 
-    def __init__(self, parent_view: StudioSetupView) -> None:
+    def __init__(self, parent_view: "StudioSetupView") -> None:
         """Constructor."""
         self.parent = parent_view
         current_year = datetime.datetime.now(tz=datetime.UTC).year
@@ -64,7 +70,7 @@ class StudioYearSelect(discord.ui.Select):
             year = validate_studio_year(self.values[0])
             self.parent.studio_year = year
             await self.parent.next_step(interaction)
-        except ValidationError as e:
+        except ViewDataValidationError as e:
             await interaction.response.send_message(f"❌ {e!s}", ephemeral=True)
             await self.parent.retry_step(interaction)
         except Exception:
