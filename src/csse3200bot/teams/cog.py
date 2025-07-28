@@ -19,7 +19,7 @@ class TeamsCog(commands.Cog):
 
     @app_commands.command()
     @app_commands.describe(team="Studio Team")
-    async def assign(self, interaction: discord.Interaction, team: str) -> None:
+    async def set_team(self, interaction: discord.Interaction, team: str) -> None:
         """Assign yourself to a team."""
         guild = interaction.guild
 
@@ -70,7 +70,7 @@ class TeamsCog(commands.Cog):
 
         return get_team_roles(guild)
 
-    @assign.autocomplete("team")
+    @set_team.autocomplete("team")
     async def assign_autocomplete(self, interaction: discord.Interaction, __: str) -> list[app_commands.Choice[str]]:
         """Autocomplete for the 'set-repo' command."""
         return [
