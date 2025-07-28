@@ -62,19 +62,19 @@ class StudioSetupView(discord.ui.View):
             {
                 "title": "Studio Number",
                 "desc": "What's your studio number?\n\n",
-                "view_constructor": self._create_studio_num_view,
+                "view_constructor": lambda: StudioNumberSetupView(self),
             },
             {
                 "title": "Studio Year",
                 "desc": f"What year is this studio for? (Defaults to {self._current_year})",
-                "view_constructor": self._create_studio_year_view,
+                "view_constructor": lambda: StudioYearSetupView(self),
             },
             {
                 "title": "GitHub Repo",
                 "desc": "What's your GitHub repo name?\n\n",
-                "view_constructor": self._create_repo_name_view,
+                "view_constructor": lambda: GitHubSetupView(self),
             },
-            {"title": "Confirm", "desc": "Confirm", "view_constructor": self._create_confirmation_view},
+            {"title": "Confirm", "desc": "Confirm", "view_constructor": lambda: ConfirmationView(self)},
         ]
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
@@ -100,18 +100,6 @@ class StudioSetupView(discord.ui.View):
             description=description,
             color=color,
         )
-
-    def _create_studio_num_view(self) -> StudioNumberSetupView:
-        return StudioNumberSetupView(self)
-
-    def _create_studio_year_view(self) -> StudioYearSetupView:
-        return StudioYearSetupView(self)
-
-    def _create_repo_name_view(self) -> GitHubSetupView:
-        return GitHubSetupView(self)
-
-    def _create_confirmation_view(self) -> ConfirmationView:
-        return ConfirmationView(self)
 
     async def retry_step(self, interaction: discord.Interaction) -> None:
         """Retry current step."""
