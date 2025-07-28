@@ -1,6 +1,5 @@
 """Studio service."""
 
-import datetime
 from uuid import UUID
 
 from sqlalchemy import delete, select
@@ -53,8 +52,6 @@ async def create_studio(
         studio_number=studio_number,
         studio_year=studio_year,
         repo_name=repo_name,
-        setup_completed=True,
-        setup_timestamp=datetime.datetime.now(datetime.UTC),
     )
     session.add(new_studio)
     await session.commit()
