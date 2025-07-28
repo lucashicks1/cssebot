@@ -129,26 +129,6 @@ class StudioSetupView(discord.ui.View):
             )
             self.stop()
 
-    async def step_confirmation(self, interaction: discord.Interaction) -> None:
-        """Confirmation step."""
-        studio_number = self.studio_num or 0
-        studio_year = self.studio_year or self._current_year
-        github_repo = self.repo_name or "BLANK"
-
-        display_name = f"Studio {studio_number} - {studio_year}"
-
-        embed = discord.Embed(
-            title="🎉 Your Studio Setup Summary",
-            description=(
-                f"**🎓 Studio:** {display_name}\n"
-                f"**🔗 GitHub Repo Name:** [`{github_repo}`](https://github.com/{constants.GH_ORG_NAME}/{github_repo})\n\n"
-            ),
-            color=0x00FF00,
-        )
-
-        view = ConfirmationView(self)
-        await interaction.response.edit_message(embed=embed, view=view)
-
     async def finish_setup(self, interaction: discord.Interaction) -> None:
         """Save configuration using the view."""
         try:

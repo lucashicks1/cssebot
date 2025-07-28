@@ -54,6 +54,9 @@ async def create_studio(
     repo_name: str,
 ) -> StudioModel:
     """Creates new StudioModel in db."""
+    data = {"repo": repo_name, "studio_num": studio_number, "studio_year": studio_year}
+    log.debug(f"Creating studio {data}")
+
     new_studio = StudioModel(
         studio_number=studio_number,
         studio_year=studio_year,

@@ -74,6 +74,7 @@ class StudioCog(commands.Cog):
                 "Let's configure the bot for your studio\n\n"
                 "**Required Information:**\n"
                 "🎓 Studio Number\n"
+                "🎓 Studio Year\n"
                 "🔗 GitHub Repository\n\n"
             ),
             color=0x7289DA,
