@@ -4,12 +4,16 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
+from csse3200bot.bot import CSSEBot
+from csse3200bot.cog import CSSECog
 
-class GreetingsCog(commands.Cog):
+
+class GreetingsCog(CSSECog):
     """Greetings cog."""
 
-    def __init__(self) -> None:
+    def __init__(self, bot: CSSEBot) -> None:
         """Constructor."""
+        super().__init__(bot)
 
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member) -> None:

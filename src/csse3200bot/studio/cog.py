@@ -7,19 +7,18 @@ from discord import app_commands
 from discord.ext import commands
 
 from csse3200bot.bot import CSSEBot
+from csse3200bot.cog import CSSECog
 from csse3200bot.studio.views import StudioSetupView
 
 log = logging.getLogger(__name__)
 
 
-class StudioCog(commands.Cog):
+class StudioCog(CSSECog):
     """Studio management and setup cog."""
-
-    _bot: CSSEBot
 
     def __init__(self, bot: CSSEBot) -> None:
         """Constructor."""
-        self._bot = bot
+        super().__init__(bot)
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild: discord.Guild) -> None:

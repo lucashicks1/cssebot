@@ -1,14 +1,14 @@
-"""Code Repository Cog."""
+"""GitHub Repository Cog."""
 
 import logging
 from collections.abc import Callable
 
 import discord
 from discord import app_commands
-from discord.ext import commands
 from github.Repository import Repository
 
 from csse3200bot.bot import CSSEBot
+from csse3200bot.cog import CSSECog
 from csse3200bot.utils.collections import SyncCache
 
 # Ref guide for Github Python Lib - https://pygithub.readthedocs.io/en/stable/reference.html
@@ -18,16 +18,14 @@ log = logging.getLogger(__name__)
 REPO_CACHE_TTL = 300
 
 
-class RepoCog(commands.Cog):
-    """Repo cog."""
-
-    _bot: CSSEBot
+class GitHubCog(CSSECog):
+    """GitHub cog."""
 
     _repo_cache: SyncCache[str, Repository]
 
     def __init__(self, bot: CSSEBot) -> None:
         """Constructor."""
-        self._bot = bot
+        super().__init__(bot)
 
         self._repo_cache = SyncCache[str, Repository](self._get_repo_wrapper())
 

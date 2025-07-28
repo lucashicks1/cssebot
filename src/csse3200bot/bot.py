@@ -60,15 +60,15 @@ class CSSEBot(commands.Bot):
         log.info("Setup hook time.")
         # Setup the cogs -> I'm not a huge fan of registering them by name because things can get missed
         # But then if we do it inside, we've got to pass parameters through bot constructor!!!! - NOT NICE
+        from csse3200bot.github.cog import GitHubCog  # noqa: PLC0415
         from csse3200bot.greetings.cog import GreetingsCog  # noqa: PLC0415
-        from csse3200bot.repo.cog import RepoCog  # noqa: PLC0415
         from csse3200bot.studio.cog import StudioCog  # noqa: PLC0415
         from csse3200bot.teams.cog import TeamsCog  # noqa: PLC0415
 
-        await self.add_cog(GreetingsCog())
-        await self.add_cog(TeamsCog())
+        await self.add_cog(GreetingsCog(self))
+        await self.add_cog(TeamsCog(self))
         await self.add_cog(StudioCog(self))
-        await self.add_cog(RepoCog(self))
+        await self.add_cog(GitHubCog(self))
 
         synced_commands = await self.tree.sync()
 
