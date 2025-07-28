@@ -4,7 +4,7 @@ import logging
 
 from csse3200bot.config import CONFIG
 
-LOG_FORMAT = "%(levelname)s:%(message)s:%(pathname)s:%(funcName)s:%(lineno)d"
+LOG_FORMAT = "%(asctime)s %(levelname)s:%(message)s:%(pathname)s:%(funcName)s:%(lineno)d"
 
 
 def configure_logging() -> None:

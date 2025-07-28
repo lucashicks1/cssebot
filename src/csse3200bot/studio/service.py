@@ -1,11 +1,14 @@
 """Studio service."""
 
+import logging
 from uuid import UUID
 
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from csse3200bot.studio.models import StudioGuildModel, StudioModel
+
+log = logging.getLogger(__name__)
 
 
 async def link_guild_to_studio(session: AsyncSession, studio_id: UUID, guild_id: str) -> None:
@@ -26,9 +29,12 @@ async def unlink_guild(session: AsyncSession, guild_id: str) -> None:
 
 async def get_studio_by_guild(session: AsyncSession, guild_id: str) -> StudioModel | None:
     """Get the studio linked to the given guild."""
+    log.debug("Preparing 'get-studio' query")
     stmt = select(StudioModel).join(StudioGuildModel).where(StudioGuildModel.guild_id == guild_id)
+    log.debug("Executing query")
     result = await session.execute(stmt)
-    return result.scalar_one_or_none()
+    log.debug(f"Got result - {result}")
+    return result.unique().scalar_one_or_none()
 
 
 async def get_studio_by_details(session: AsyncSession, year: int, number: int) -> StudioModel | None:

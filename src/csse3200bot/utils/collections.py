@@ -1,10 +1,14 @@
 """Collection Utils."""
 
+import logging
 from abc import ABC
 from collections.abc import Awaitable, Callable
 from time import time
 
 DEFAULT_CACHE_TTL = 300
+
+
+log = logging.getLogger(__name__)
 
 
 class _BaseCache[T, S](ABC):
@@ -57,14 +61,17 @@ class SyncCache[T, S](_BaseCache[T, S]):
     def get(self, key: T) -> S | None:
         """Get something from the cache."""
         cached = self._cache.get(key)
-        if cached and self._is_valid(cached[0]):
-            return cached[1]
+        if cached:
+            if self._is_valid(cached[0]):
+                log.debug(f"Cache hit for key: {key}")
+                return cached[1]
+            log.debug(f"Cache expired for key: {key}")
+            self._cache.pop(key)
 
-        if key in self._cache:
-            return None
-
+        log.debug(f"Cache miss for key: {key}, fetching...")
         result = self._fetch_callback(key)
         self._cache[key] = (time(), result)
+        log.debug(f"[SyncCache] Cached result for key: {key}")
         return result
 
 
@@ -86,12 +93,15 @@ class AsyncCache[T, S](_BaseCache[T, S]):
     async def get(self, key: T) -> S | None:
         """Get something from the cache."""
         cached = self._cache.get(key)
-        if cached and self._is_valid(cached[0]):
-            return cached[1]
+        if cached:
+            if self._is_valid(cached[0]):
+                log.debug(f"Cache hit for key: {key}")
+                return cached[1]
+            log.debug(f"Cache expired for key: {key}")
+            self._cache.pop(key)
 
-        if key in self._cache:
-            return None
-
+        log.debug(f"Cache miss for key: {key}, fetching...")
         result = await self._fetch_callback(key)
         self._cache[key] = (time(), result)
+        log.debug(f"Cached result for key: {key}")
         return result

@@ -89,12 +89,16 @@ class StudioCog(commands.Cog):
     @app_commands.command(name="studio_info", description="View current studio configuration")
     async def studio_info(self, interaction: discord.Interaction) -> None:
         """View current studio configuration."""
+        log.debug("Got 'studio_info' command")
         guild = interaction.guild
         if guild is None:
             await interaction.response.send_message("This command can only be used in a server", ephemeral=True)
             return
 
+        log.debug(f"I am in guild {guild.id} ")
+
         studio = await self._bot.get_studio(guild)
+        log.debug(f"I have found studio - {studio} (could be nothing)")
         if not studio:
             embed = discord.Embed(
                 title="❌ Studio Not Configured",

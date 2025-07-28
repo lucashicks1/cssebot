@@ -73,28 +73,37 @@ class CSSEBot(commands.Bot):
         synced_commands = await self.tree.sync()
 
         for com in synced_commands:
-            msg = f"Synced '{com.name}' command"
-            log.debug(msg)
-
-        log.info(msg)
+            log.debug(f"Synced '{com.name}' command")
 
     @asynccontextmanager
     async def get_db(self) -> AsyncGenerator[AsyncSession]:
         """Get database session."""
         async with self._sessionmaker() as session:
-            yield session
+            try:
+                yield session
+                await session.commit()
+            except Exception:
+                log.exception("Got a db error")
+                await session.rollback()
+                raise
+            finally:
+                await session.close()
 
     def _fetch_studio_by_guild_wrapper(self) -> Callable[[str], Awaitable[StudioModel | None]]:
         """A wrapper for fetching a studio from a guild, to be used with the AsyncCache."""
 
         async def fetch(guild_id: str) -> StudioModel | None:
+            log.debug(f"Fetching studio for guild: {guild_id}")
             async with self.get_db() as session:
-                return await get_studio_by_guild(session, guild_id)
+                result = await get_studio_by_guild(session, guild_id)
+                log.debug(f" Result for guild {guild_id}: {result}")
+                return result
 
         return fetch
 
     async def get_studio(self, guild: discord.Guild) -> StudioModel | None:
         """Get studio from given guild, using the cache."""
+        log.debug(f"Looking in studio cache for guild '{guild.id}'")
         return await self._studio_cache.get(str(guild.id))
 
     async def create_or_update_studio(
