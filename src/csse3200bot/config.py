@@ -12,7 +12,6 @@ class GeneralSettings(BaseSettings):
     discord_bot_token: str = Field()
     db_url: str = Field()
     log_level: LogLevel = Field(default=LogLevel.debug)
-    gh_org_name: str = Field()
     gh_token: str = Field()
 
 

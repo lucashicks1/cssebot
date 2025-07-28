@@ -6,24 +6,9 @@ import discord
 from discord import Role, app_commands
 from discord.ext import commands
 
-from csse3200bot.enums import CsseEnum
 from csse3200bot.teams.utils import get_member_team, get_team_roles
 
 log = logging.getLogger(__name__)
-
-
-class TeamEnum(CsseEnum):
-    """Enum for team roles."""
-
-    team1 = "Team 1"
-    team2 = "Team 2"
-    team3 = "Team 3"
-    team4 = "Team 4"
-    team5 = "Team 5"
-    team6 = "Team 6"
-    team7 = "Team 7"
-    team8 = "Team 8"
-    team9 = "Team 9"
 
 
 class TeamsCog(commands.Cog):

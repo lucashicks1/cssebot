@@ -11,9 +11,9 @@ class _BaseCache[T, S](ABC):
     """Abstract base class for cache."""
 
     _ttl: int
-    _cache: dict[T, tuple[float, S]]
+    _cache: dict[T, tuple[float, S | None]]
 
-    def __init__(self, ttl: int = DEFAULT_CACHE_TTL) -> None:
+    def __init__(self, ttl: int) -> None:
         """Abstract cache."""
         self._ttl = ttl
         self._cache = {}
@@ -24,6 +24,19 @@ class _BaseCache[T, S](ABC):
     def clear(self) -> None:
         """Clear the entire cache."""
         self._cache.clear()
+
+    def set(self, key: T, value: S) -> None:
+        """Set an item in the cache."""
+        self._cache[key] = (time(), value)
+
+    def remove(self, key: T) -> bool:
+        """Remove an item from the cache."""
+        found = self._cache.pop(key, None)
+        return found is not None
+
+    def __contains__(self, key: T) -> bool:
+        cached = self._cache.get(key)
+        return cached is not None and self._is_valid(cached[0])
 
 
 class SyncCache[T, S](_BaseCache[T, S]):
@@ -47,9 +60,11 @@ class SyncCache[T, S](_BaseCache[T, S]):
         if cached and self._is_valid(cached[0]):
             return cached[1]
 
+        if key in self._cache:
+            return None
+
         result = self._fetch_callback(key)
-        if result is not None:
-            self._cache[key] = (time(), result)
+        self._cache[key] = (time(), result)
         return result
 
 
@@ -74,7 +89,9 @@ class AsyncCache[T, S](_BaseCache[T, S]):
         if cached and self._is_valid(cached[0]):
             return cached[1]
 
+        if key in self._cache:
+            return None
+
         result = await self._fetch_callback(key)
-        if result is not None:
-            self._cache[key] = (time(), result)
+        self._cache[key] = (time(), result)
         return result
