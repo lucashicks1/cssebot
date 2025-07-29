@@ -11,7 +11,7 @@ from csse3200bot.bot import CSSEBot
 log = logging.getLogger(__name__)
 
 
-def studio_required(func):
+def studio_required(func):  # noqa: ANN001, ANN201
     """Decorator that checks if a guild has been setup with a studio before executing the command.
 
     This should be applied to app_commands that require a studio to be set up.
@@ -26,7 +26,7 @@ def studio_required(func):
     """
 
     @functools.wraps(func)
-    async def wrapper(self: Any, interaction: discord.Interaction, *args, **kwargs) -> Any:
+    async def wrapper(self: Any, interaction: discord.Interaction, *args, **kwargs) -> Any:  # noqa: ANN002, ANN003, ANN401
         guild = interaction.guild
 
         if guild is None:
