@@ -19,7 +19,7 @@ class StudioYearSetupView(discord.ui.View):
     """Studio year setup."""
 
     def __init__(self, parent_view: "StudioSetupView") -> None:
-        """Constructor."""
+        """Creates view for studio year selection."""
         super().__init__(timeout=300)
         self.parent = parent_view
         self.add_item(StudioYearSelect(parent_view))
@@ -33,7 +33,7 @@ class StudioYearSelect(discord.ui.Select):
     """Studio Year Select."""
 
     def __init__(self, parent_view: "StudioSetupView") -> None:
-        """Constructor."""
+        """Creates a dropdown used to select the studio year."""
         self.parent = parent_view
         current_year = datetime.datetime.now(tz=datetime.UTC).year
 

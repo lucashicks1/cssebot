@@ -38,7 +38,7 @@ class CSSEBot(commands.Bot):
     # studio info
     _studio_cache: AsyncCache[str, StudioModel]  # guild_id -> StudioModel
 
-    def __init__(  # noqa: D107
+    def __init__(
         self,
         guild_ids: list[int],
         db_sessionmaker: async_sessionmaker,
@@ -47,6 +47,7 @@ class CSSEBot(commands.Bot):
         *args: Any,  # noqa: ANN401
         **kwargs: Any,  # noqa: ANN401
     ) -> None:
+        """Creates a csse bot."""
         super().__init__(*args, **kwargs)
         self._guilds = [discord.Object(id=guild_id) for guild_id in guild_ids]
         self._sessionmaker = db_sessionmaker
@@ -56,66 +57,22 @@ class CSSEBot(commands.Bot):
 
         self._studio_cache = AsyncCache(self._fetch_studio_by_guild_wrapper())
 
-    # https://discordpy.readthedocs.io/en/stable/api.html#discord.Client.setup_hook
-    # This is called when the bot starts
-    async def setup_hook(self) -> None:
-        """Setup."""
-        log.info("Setup hook time.")
-        # Setup the cogs -> I'm not a huge fan of registering them by name because things can get missed
-        # But then if we do it inside, we've got to pass parameters through bot constructor!!!! - NOT NICE
-        from csse3200bot.gh.cog import GitHubCog  # noqa: I001, PLC0415
-        from csse3200bot.greetings.cog import GreetingsCog  # noqa: PLC0415
-        from csse3200bot.studio.cog import StudioCog  # noqa: PLC0415
-        from csse3200bot.teams.cog import TeamsCog  # noqa: PLC0415
-        from csse3200bot.admin.cog import AdminCog  # noqa: PLC0415
-
-        self.add_command(self.sync_command)
-
-        cogs: list[type[commands.GroupCog]] = [GitHubCog, GreetingsCog, StudioCog, TeamsCog, AdminCog]
-        for cog_cls in cogs:
-            log.info(f"Adding cog: {cog_cls.__name__}")
-            await self.add_cog(cog_cls(self))
-
     @staticmethod
     @commands.command(name="sync_bot")
     @commands.is_owner()
-    async def sync_command(ctx: commands.Context, spec: str | None = None) -> None:
-        """Sync command."""
-        bot = ctx.bot
-        if spec == "~":
-            synced = await bot.tree.sync(guild=ctx.guild)
-        elif spec == "*":
-            bot.tree.copy_global_to(guild=ctx.guild)
-            synced = await bot.tree.sync(guild=ctx.guild)
-        elif spec == "^":
-            bot.tree.clear_commands(guild=ctx.guild)
-            synced = await bot.tree.sync(guild=ctx.guild)
-        else:
-            synced = await bot.tree.sync()
-
+    async def sync_command(ctx: commands.Context) -> None:
+        """Sync Command."""
         guild = ctx.guild
         if guild is None:
             await ctx.send("Not allowed to be used outside of guild", ephemeral=True)
             return
 
-        await ctx.send(
-            f"Synced {len(synced)} commands "
-            f"{'globally' if spec is None else f'to the current guild ({guild.name})' if spec in ['~', '*', '^'] else ''}."  # noqa: E501
-        )
+        synced = await ctx.bot.tree.sync()
 
-    async def sync(self) -> int:
-        """Sync Bot."""
-        synced_commands = await self.tree.sync()
-        return len(synced_commands)
-        # For later
-        for guild in self._guilds:
-            log.info(f"Syncing guild '{guild.id}'")
-            synced_commands = await self.tree.sync(guild=guild)
+        for com in synced:
+            log.info(f"Synced: {com}")
 
-        for com in synced_commands:
-            log.debug(f"Synced '{com.name}' command")
-
-        return len(synced_commands)
+        await ctx.send(f"Synced {len(synced)} commands globally")
 
     @asynccontextmanager
     async def get_db(self) -> AsyncGenerator[AsyncSession]:
@@ -145,7 +102,6 @@ class CSSEBot(commands.Bot):
 
     async def get_studio(self, guild: discord.Guild) -> StudioModel | None:
         """Get studio from given guild, using the cache."""
-        log.debug(f"Looking in studio cache for guild '{guild.id}'")
         return await self._studio_cache.get(str(guild.id))
 
     async def create_or_update_studio(

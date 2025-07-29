@@ -15,6 +15,6 @@ class SprintFeatureModel(BaseDBModel):
     __table_args__ = (PrimaryKeyConstraint("studio_id", "team_id", "sprint_number"),)
 
     studio_id: Mapped[UUID] = mapped_column(ForeignKey("studio.studio_id", ondelete="CASCADE"))
-    team_id: Mapped[str]  # team identifier string
+    team_number: Mapped[str]
     sprint_number: Mapped[int]
-    features: Mapped[str]  # JSON string or serialized features
+    features: Mapped[str]

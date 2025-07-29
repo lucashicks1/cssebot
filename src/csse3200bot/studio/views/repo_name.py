@@ -16,7 +16,13 @@ log = logging.getLogger(__name__)
 class GitHubSetupView(discord.ui.View):
     """View that displays github repo picker."""
 
-    def __init__(self, parent_view: "StudioSetupView", repo_names: list[str]) -> None:  # noqa: D107
+    def __init__(self, parent_view: "StudioSetupView", repo_names: list[str]) -> None:
+        """Creates a github setup view, used when setting the github repo for a studio.
+
+        Args:
+            parent_view (StudioSetupView): studio setup view
+            repo_names (list[str]): list of valid repo names for autocomplete
+        """
         super().__init__(timeout=300)
         self.parent = parent_view
         self.add_item(GitHubRepoSelect(parent_view, repo_names))
@@ -29,13 +35,19 @@ class GitHubSetupView(discord.ui.View):
 class GitHubRepoSelect(discord.ui.Select):
     """Github Repo Dropdown."""
 
-    def __init__(self, parent_view: "StudioSetupView", repo_names: list[str]) -> None:  # noqa: D107
+    def __init__(self, parent_view: "StudioSetupView", repo_names: list[str]) -> None:
+        """Dropdown for selecting github repo name.
+
+        Args:
+            parent_view (StudioSetupView): studio setup view
+            repo_names (list[str]): list of valid repo names for autocomplete
+        """
         self.parent = parent_view
 
         options = [discord.SelectOption(label=repo, value=repo) for repo in repo_names]
 
         super().__init__(
-            placeholder="Select a Github reository...",
+            placeholder="Select a Github repository name...",
             options=options,
         )
 

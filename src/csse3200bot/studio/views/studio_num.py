@@ -11,14 +11,18 @@ from csse3200bot.studio.views.utils import manage_guild_perms_only
 if TYPE_CHECKING:
     from csse3200bot.studio.views.setup import StudioSetupView
 
-
 log = logging.getLogger(__name__)
 
 
 class StudioNumberSetupView(discord.ui.View):
     """View that displays the studio number setup."""
 
-    def __init__(self, parent_view: "StudioSetupView") -> None:  # noqa: D107
+    def __init__(self, parent_view: "StudioSetupView") -> None:
+        """Creates a view used during studio number selection.
+
+        Args:
+            parent_view (StudioSetupView): studio setup view.
+        """
         super().__init__(timeout=300)
         self.add_item(StudioNumberSelect(parent_view))
         self.parent = parent_view
@@ -31,7 +35,12 @@ class StudioNumberSetupView(discord.ui.View):
 class StudioNumberSelect(discord.ui.Select):
     """Studio Number Dropdown."""
 
-    def __init__(self, parent_view: "StudioSetupView") -> None:  # noqa: D107
+    def __init__(self, parent_view: "StudioSetupView") -> None:
+        """Create a studio number dropdown.
+
+        Args:
+            parent_view (StudioSetupView): studio setup view.
+        """
         self.parent = parent_view
 
         options = [discord.SelectOption(label=f"Studio {i}", value=str(i)) for i in range(1, constants.NUM_STUDIOS + 1)]

@@ -2,8 +2,12 @@
 
 import asyncio
 import logging
+from typing import TYPE_CHECKING
 
 import discord
+
+if TYPE_CHECKING:
+    from discord.ext import commands
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -15,7 +19,11 @@ from csse3200bot import constants
 from csse3200bot.bot import CSSEBot
 from csse3200bot.config import CONFIG
 from csse3200bot.database.service import initialise_database
+from csse3200bot.gh.cog import GitHubCog
+from csse3200bot.greetings.cog import GreetingsCog
 from csse3200bot.logger import configure_logging
+from csse3200bot.studio.cog import StudioCog
+from csse3200bot.teams.cog import TeamsCog
 
 # Setting up the intents
 intents = discord.Intents.default()
@@ -39,6 +47,12 @@ bot = CSSEBot(
 async def main() -> None:
     """Main function."""
     configure_logging()
+
+    # Add the cogs
+    cogs: list[commands.Cog] = [GitHubCog(bot), GreetingsCog(bot), StudioCog(bot), TeamsCog(bot)]
+    for cog in cogs:
+        log.info(f"Adding cog '{cog.__cog_name__} to bot'")
+        await bot.add_cog(cog)
 
     await initialise_database(db_engine)
 

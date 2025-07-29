@@ -9,12 +9,12 @@ from csse3200bot.sprint.models import SprintFeatureModel
 
 
 async def get_sprint_feature(
-    session: AsyncSession, studio_id: UUID, team_id: str, sprint_number: int
+    session: AsyncSession, studio_id: UUID, team_number: str, sprint_number: int
 ) -> SprintFeatureModel | None:
     """Get a sprint features model."""
     stmt = select(SprintFeatureModel).where(
         SprintFeatureModel.studio_id == studio_id,
-        SprintFeatureModel.team_id == team_id,
+        SprintFeatureModel.team_number == team_number,
         SprintFeatureModel.sprint_number == sprint_number,
     )
     result = await session.execute(stmt)
@@ -24,14 +24,14 @@ async def get_sprint_feature(
 async def create_or_update_sprint_feature(
     session: AsyncSession,
     studio_id: UUID,
-    team_id: str,
+    team_number: str,
     sprint_number: int,
     features: str,
 ) -> SprintFeatureModel:
     """Create or update sprint features."""
     stmt = select(SprintFeatureModel).where(
         SprintFeatureModel.studio_id == studio_id,
-        SprintFeatureModel.team_id == team_id,
+        SprintFeatureModel.team_number == team_number,
         SprintFeatureModel.sprint_number == sprint_number,
     )
     result = await session.execute(stmt)
@@ -46,7 +46,7 @@ async def create_or_update_sprint_feature(
 
     sprint_feature = SprintFeatureModel(
         studio_id=studio_id,
-        team_id=team_id,
+        team_number=team_number,
         sprint_number=sprint_number,
         features=features,
     )
