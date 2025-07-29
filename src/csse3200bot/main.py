@@ -31,7 +31,9 @@ session_factory = async_sessionmaker(
     expire_on_commit=False,
 )
 
-bot = CSSEBot(session_factory, constants.GH_ORG_NAME, CONFIG.gh_token, command_prefix="!", intents=intents)
+bot = CSSEBot(
+    CONFIG.guild_ids, session_factory, constants.GH_ORG_NAME, CONFIG.gh_token, command_prefix="!", intents=intents
+)
 
 
 async def main() -> None:

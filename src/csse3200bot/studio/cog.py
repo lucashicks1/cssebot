@@ -64,7 +64,7 @@ class StudioCog(CSSECog):
             log.exception(f"Failed to send setup message to {guild.name}")
 
     @app_commands.command(name="studio_setup", description="Set up or reconfigure the studio")
-    @app_commands.default_permissions(manage_guild=True)
+    @app_commands.checks.has_permissions(manage_guild=True)
     async def studio_setup(self, interaction: discord.Interaction) -> None:
         """Manual studio setup command."""
         embed = discord.Embed(

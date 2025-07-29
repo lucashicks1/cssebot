@@ -3,7 +3,7 @@
 import logging
 from collections.abc import AsyncGenerator, Awaitable, Callable
 from contextlib import asynccontextmanager
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import discord
 from discord.ext import commands
@@ -21,6 +21,9 @@ from csse3200bot.studio.service import (
 )
 from csse3200bot.utils.collections import AsyncCache
 
+if TYPE_CHECKING:
+    from csse3200bot.cog import CSSECog
+
 log = logging.getLogger(__name__)
 
 
@@ -28,6 +31,7 @@ class CSSEBot(commands.Bot):
     """Custom csse bot."""
 
     _sessionmaker: async_sessionmaker
+    _guilds: list[discord.abc.Snowflake]
 
     # Github stuff - yes I know, this ideally should be in cog, but used everywhere and referencing
     # cogs by strings is yuck!!!
@@ -39,6 +43,7 @@ class CSSEBot(commands.Bot):
 
     def __init__(  # noqa: D107
         self,
+        guild_ids: list[int],
         db_sessionmaker: async_sessionmaker,
         gh_org_name: str,
         gh_token: str,
@@ -46,9 +51,10 @@ class CSSEBot(commands.Bot):
         **kwargs: Any,  # noqa: ANN401
     ) -> None:
         super().__init__(*args, **kwargs)
+        self._guilds = [discord.Object(id=guild_id) for guild_id in guild_ids]
         self._sessionmaker = db_sessionmaker
 
-        self._gh_client = Github(auth=Auth.Token(gh_token))
+        self._gh_client = Github(auth=Auth.Token(gh_token), per_page=100)
         self._org = self._gh_client.get_organization(gh_org_name)
 
         self._studio_cache = AsyncCache(self._fetch_studio_by_guild_wrapper())
@@ -60,20 +66,27 @@ class CSSEBot(commands.Bot):
         log.info("Setup hook time.")
         # Setup the cogs -> I'm not a huge fan of registering them by name because things can get missed
         # But then if we do it inside, we've got to pass parameters through bot constructor!!!! - NOT NICE
-        from csse3200bot.github.cog import GitHubCog  # noqa: PLC0415
+        from csse3200bot.gh.cog import GitHubCog  # noqa: I001, PLC0415
         from csse3200bot.greetings.cog import GreetingsCog  # noqa: PLC0415
         from csse3200bot.studio.cog import StudioCog  # noqa: PLC0415
         from csse3200bot.teams.cog import TeamsCog  # noqa: PLC0415
+        from csse3200bot.admin.cog import AdminCog  # noqa: PLC0415
 
-        await self.add_cog(GreetingsCog(self))
-        await self.add_cog(TeamsCog(self))
-        await self.add_cog(StudioCog(self))
-        await self.add_cog(GitHubCog(self))
+        cogs: list[type[CSSECog]] = [GitHubCog, GreetingsCog, StudioCog, TeamsCog, AdminCog]
+        for cog_cls in cogs:
+            log.info(f"Adding cog: {cog_cls.__name__}")
+            await self.add_cog(cog_cls(self))
 
-        synced_commands = await self.tree.sync()
+    async def sync(self) -> int:
+        """Sync Bot."""
+        for guild in self._guilds:
+            log.info(f"Syncing guild '{guild.id}'")
+            synced_commands = await self.tree.sync(guild=guild)
 
         for com in synced_commands:
             log.debug(f"Synced '{com.name}' command")
+
+        return len(synced_commands)
 
     @asynccontextmanager
     async def get_db(self) -> AsyncGenerator[AsyncSession]:

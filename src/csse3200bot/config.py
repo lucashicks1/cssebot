@@ -13,6 +13,7 @@ class GeneralSettings(BaseSettings):
     db_url: str = Field()
     log_level: LogLevel = Field(default=LogLevel.debug)
     gh_token: str = Field()
+    guild_ids: list[int] = Field()
 
 
 CONFIG = GeneralSettings()  # type: ignore[call-arg]
