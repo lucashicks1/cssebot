@@ -6,6 +6,7 @@ import discord
 from discord import Role, app_commands
 from discord.ext import commands
 
+from csse3200bot import constants
 from csse3200bot.bot import CSSEBot
 from csse3200bot.teams.utils import get_member_team, get_team_roles
 
@@ -20,6 +21,30 @@ class TeamsCog(commands.GroupCog, name="team"):
     def __init__(self, bot: CSSEBot) -> None:
         """Constructor."""
         self._bot = bot
+
+    @commands.Cog.listener()
+    async def on_guild_join(self, guild: discord.Guild) -> None:
+        """Create team roles when bot joins a server."""
+        await self._create_team_roles(guild)
+
+    async def _create_team_roles(self, guild: discord.Guild) -> None:
+        """Create the team roles if they don't exist."""
+        team_names = [f"Team {i}" for i in range(1, constants.NUM_TEAMS + 1)]
+
+        for team_name in team_names:
+            # check if role exists
+            existing_role = discord.utils.get(guild.roles, name=team_name)
+            if existing_role:
+                log.info(f"Role '{team_name}' already exists in guild '{guild.name}'")
+                continue
+
+            try:
+                await guild.create_role(name=team_name, reason="Auto-created team role when bot joined server")
+                log.info(f"Created role '{team_name}' in guild '{guild.name}'")
+            except discord.Forbidden:
+                log.exception(f"No permission to create role '{team_name}' in guild '{guild.name}'")
+            except Exception:
+                log.exception(f"Error creating role '{team_name}' in guild '{guild.name}'")
 
     @app_commands.command(name="set")
     @app_commands.describe(team="Studio Team")
