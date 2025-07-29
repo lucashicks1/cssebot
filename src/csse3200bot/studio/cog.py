@@ -7,18 +7,19 @@ from discord import app_commands
 from discord.ext import commands
 
 from csse3200bot.bot import CSSEBot
-from csse3200bot.cog import CSSECog
 from csse3200bot.studio.views import StudioSetupView
 
 log = logging.getLogger(__name__)
 
 
-class StudioCog(CSSECog):
+class StudioCog(commands.GroupCog, name="studio"):
     """Studio management and setup cog."""
+
+    _bot: CSSEBot
 
     def __init__(self, bot: CSSEBot) -> None:
         """Constructor."""
-        super().__init__(bot)
+        self._bot = bot
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild: discord.Guild) -> None:
@@ -63,7 +64,7 @@ class StudioCog(CSSECog):
         except Exception:
             log.exception(f"Failed to send setup message to {guild.name}")
 
-    @app_commands.command(name="studio_setup", description="Set up or reconfigure the studio")
+    @app_commands.command(name="setup", description="Set up or reconfigure the studio")
     @app_commands.checks.has_permissions(manage_guild=True)
     async def studio_setup(self, interaction: discord.Interaction) -> None:
         """Manual studio setup command."""
@@ -86,7 +87,7 @@ class StudioCog(CSSECog):
         view = StudioSetupView(self._bot, guild)
         await interaction.response.send_message(embed=embed, view=view)
 
-    @app_commands.command(name="studio_info", description="View current studio configuration")
+    @app_commands.command(name="info", description="View current studio configuration")
     async def studio_info(self, interaction: discord.Interaction) -> None:
         """View current studio configuration."""
         log.debug("Got 'studio_info' command")

@@ -3,7 +3,7 @@
 import logging
 from collections.abc import AsyncGenerator, Awaitable, Callable
 from contextlib import asynccontextmanager
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import discord
 from discord.ext import commands
@@ -20,9 +20,6 @@ from csse3200bot.studio.service import (
     unlink_guild,
 )
 from csse3200bot.utils.collections import AsyncCache
-
-if TYPE_CHECKING:
-    from csse3200bot.cog import CSSECog
 
 log = logging.getLogger(__name__)
 
@@ -72,7 +69,7 @@ class CSSEBot(commands.Bot):
         from csse3200bot.teams.cog import TeamsCog  # noqa: PLC0415
         from csse3200bot.admin.cog import AdminCog  # noqa: PLC0415
 
-        cogs: list[type[CSSECog]] = [GitHubCog, GreetingsCog, StudioCog, TeamsCog, AdminCog]
+        cogs: list[type[commands.GroupCog]] = [GitHubCog, GreetingsCog, StudioCog, TeamsCog, AdminCog]
         for cog_cls in cogs:
             log.info(f"Adding cog: {cog_cls.__name__}")
             await self.add_cog(cog_cls(self))

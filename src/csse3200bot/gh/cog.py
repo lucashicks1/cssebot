@@ -6,12 +6,12 @@ from collections.abc import Awaitable, Callable
 
 import discord
 from discord import app_commands
+from discord.ext import commands
 from github.GithubException import GithubException
 from github.NamedUser import NamedUser
 from github.Repository import Repository
 
 from csse3200bot.bot import CSSEBot
-from csse3200bot.cog import CSSECog
 from csse3200bot.gh.models import DiscordUserModel
 from csse3200bot.gh.service import create_or_update_user_model, get_user_model, get_user_model_by_gh
 from csse3200bot.utils.collections import AsyncCache, SyncCache
@@ -23,8 +23,10 @@ log = logging.getLogger(__name__)
 REPO_CACHE_TTL = 300
 
 
-class GitHubCog(CSSECog):
+class GitHubCog(commands.GroupCog, name="gh"):
     """GitHub cog."""
+
+    _bot: CSSEBot
 
     # Repos
     _repo_cache: SyncCache[str, Repository]
@@ -35,7 +37,7 @@ class GitHubCog(CSSECog):
 
     def __init__(self, bot: CSSEBot) -> None:
         """Constructor."""
-        super().__init__(bot)
+        self._bot = bot
 
         # Repos
         self._repo_cache = SyncCache[str, Repository](self._get_repo_wrapper())
@@ -92,7 +94,7 @@ class GitHubCog(CSSECog):
             log.exception("Couldn't find members for github org'")
             return
 
-    @app_commands.command()
+    @app_commands.command(name="get")
     @app_commands.checks.cooldown(1, 5.0, key=lambda i: (i.user.id))
     async def get_gh(self, interaction: discord.Interaction) -> None:
         """Get the github account linked to your discord account."""
@@ -125,7 +127,7 @@ class GitHubCog(CSSECog):
 
         await interaction.response.send_message(embed=embed)
 
-    @app_commands.command()
+    @app_commands.command(name="set")
     async def set_gh(self, interaction: discord.Interaction, gh_username: str) -> None:
         """Associate your discord user with a github user."""
         await interaction.response.defer()
@@ -184,7 +186,7 @@ class GitHubCog(CSSECog):
             self._user_cache.set(user_id, result)
         await interaction.followup.send(f"You have now set your github account to '{gh_username}'.", ephemeral=True)
 
-    @app_commands.command()
+    @app_commands.command(name="unset")
     @app_commands.checks.has_permissions(manage_guild=True)
     async def unset_gh(self, interaction: discord.Interaction, member: discord.Member) -> None:
         """Unassociate a discord user with a github user - Staff Only."""
@@ -206,7 +208,7 @@ class GitHubCog(CSSECog):
             self._user_cache.set(user_id, result)
         await interaction.followup.send(f"{member.mention}'s has been unassociated from a github user.", ephemeral=True)
 
-    @app_commands.command()
+    @app_commands.command(name="refresh")
     @app_commands.checks.has_permissions(manage_guild=True)
     async def refresh_gh_names(self, interaction: discord.Interaction) -> None:
         """Refreshes the cache of github usernames - useful if students just joined and can't find their name to set."""
@@ -215,7 +217,7 @@ class GitHubCog(CSSECog):
         await self._load_members()
         await interaction.followup.send("All github members in the org have been refreshed", ephemeral=True)
 
-    @app_commands.command()
+    @app_commands.command(name="repo_info")
     @app_commands.checks.cooldown(1, 5.0, key=lambda i: (i.guild_id))
     async def repo_info(self, interaction: discord.Interaction) -> None:
         """Get information about your studio's repository."""

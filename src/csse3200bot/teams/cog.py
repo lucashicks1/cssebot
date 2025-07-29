@@ -4,22 +4,24 @@ import logging
 
 import discord
 from discord import Role, app_commands
+from discord.ext import commands
 
 from csse3200bot.bot import CSSEBot
-from csse3200bot.cog import CSSECog
 from csse3200bot.teams.utils import get_member_team, get_team_roles
 
 log = logging.getLogger(__name__)
 
 
-class TeamsCog(CSSECog):
+class TeamsCog(commands.GroupCog, name="team"):
     """Teams cog."""
+
+    _bot: CSSEBot
 
     def __init__(self, bot: CSSEBot) -> None:
         """Constructor."""
-        super().__init__(bot)
+        self._bot = bot
 
-    @app_commands.command()
+    @app_commands.command(name="set")
     @app_commands.describe(team="Studio Team")
     async def set_team(self, interaction: discord.Interaction, team: str) -> None:
         """Assign yourself to a team."""

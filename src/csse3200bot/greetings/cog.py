@@ -5,15 +5,16 @@ from discord import app_commands
 from discord.ext import commands
 
 from csse3200bot.bot import CSSEBot
-from csse3200bot.cog import CSSECog
 
 
-class GreetingsCog(CSSECog):
+class GreetingsCog(commands.GroupCog, name="say"):
     """Greetings cog."""
+
+    _bot: CSSEBot
 
     def __init__(self, bot: CSSEBot) -> None:
         """Constructor."""
-        super().__init__(bot)
+        self._bot = bot
 
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member) -> None:
@@ -22,14 +23,7 @@ class GreetingsCog(CSSECog):
         if channel is not None:
             await channel.send(f"Welcome {member.mention}.")
 
-    @commands.command()
-    async def hello(self, ctx: commands.Context, *, member: discord.User | discord.Member | None = None) -> None:
-        """Says hello."""
-        member = member or ctx.author
-
-        await ctx.send(f"Hello {member.name}... This feels familiar.")
-
-    @app_commands.command(name="test")
+    @app_commands.command(name="hello")
     @app_commands.describe(thing_to_say="This is the thing to say")
     async def better_hello(self, interaction: discord.Interaction, thing_to_say: str) -> None:
         """Better hello command."""

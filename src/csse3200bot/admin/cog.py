@@ -4,19 +4,21 @@ import logging
 
 import discord
 from discord import app_commands
+from discord.ext import commands
 
 from csse3200bot.bot import CSSEBot
-from csse3200bot.cog import CSSECog
 
 log = logging.getLogger(__name__)
 
 
-class AdminCog(CSSECog):
+class AdminCog(commands.GroupCog, name="admin"):
     """Admin cog cog."""
+
+    _bot: CSSEBot
 
     def __init__(self, bot: CSSEBot) -> None:
         """Constructor."""
-        super().__init__(bot)
+        self._bot = bot
 
     async def cog_load(self) -> None:
         """A special method that is called when the cog gets loaded - load the sprint features."""
