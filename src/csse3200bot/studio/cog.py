@@ -7,6 +7,7 @@ from discord import app_commands
 from discord.ext import commands
 
 from csse3200bot.bot import CSSEBot
+from csse3200bot.studio.utils import studio_required
 from csse3200bot.studio.views import StudioSetupView
 
 log = logging.getLogger(__name__)
@@ -88,6 +89,7 @@ class StudioCog(commands.GroupCog, name="studio"):
         await interaction.response.send_message(embed=embed, view=view)
 
     @app_commands.command(name="info", description="View current studio configuration")
+    @studio_required
     async def studio_info(self, interaction: discord.Interaction) -> None:
         """View current studio configuration."""
         log.debug("Got 'studio_info' command")
