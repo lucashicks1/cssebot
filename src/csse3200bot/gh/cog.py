@@ -14,7 +14,8 @@ from github.Repository import Repository
 from csse3200bot.bot import CSSEBot
 from csse3200bot.gh.models import DiscordUserModel
 from csse3200bot.gh.service import create_or_update_user_model, get_user_model, get_user_model_by_gh
-from csse3200bot.utils.collections import AsyncCache, SyncCache
+from csse3200bot.studio.utils import studio_required
+from csse3200bot.utils import AsyncCache, SyncCache
 
 # Ref guide for Github Python Lib - https://pygithub.readthedocs.io/en/stable/reference.html
 
@@ -217,6 +218,7 @@ class GitHubCog(commands.GroupCog, name="gh"):
 
     @app_commands.command(name="repo_info")
     @app_commands.checks.cooldown(1, 5.0, key=lambda i: (i.guild_id))
+    @studio_required
     async def repo_info(self, interaction: discord.Interaction) -> None:
         """Get information about your studio's repository."""
         guild = interaction.guild

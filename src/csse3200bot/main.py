@@ -49,6 +49,7 @@ async def main() -> None:
     configure_logging()
 
     # Add the cogs
+    log.info("Setting up cogs")
     cogs: list[commands.Cog] = [GitHubCog(bot), GreetingsCog(bot), StudioCog(bot), TeamsCog(bot)]
     for cog in cogs:
         log.info(f"Adding cog '{cog.__cog_name__} to bot'")

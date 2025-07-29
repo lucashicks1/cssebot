@@ -19,9 +19,26 @@ from csse3200bot.studio.service import (
     link_guild_to_studio,
     unlink_guild,
 )
-from csse3200bot.utils.collections import AsyncCache
+from csse3200bot.utils import AsyncCache
 
 log = logging.getLogger(__name__)
+
+
+@commands.command(name="sync_bot")
+@commands.is_owner()
+async def sync_command(ctx: commands.Context) -> None:
+    """Sync Command."""
+    guild = ctx.guild
+    if guild is None:
+        await ctx.send("Not allowed to be used outside of guild", ephemeral=True)
+        return
+
+    synced = await ctx.bot.tree.sync()
+
+    for com in synced:
+        log.info(f"Synced: {com}")
+
+    await ctx.send(f"Synced {len(synced)} commands globally")
 
 
 class CSSEBot(commands.Bot):
@@ -56,23 +73,6 @@ class CSSEBot(commands.Bot):
         self._org = self._gh_client.get_organization(gh_org_name)
 
         self._studio_cache = AsyncCache(self._fetch_studio_by_guild_wrapper())
-
-    @staticmethod
-    @commands.command(name="sync_bot")
-    @commands.is_owner()
-    async def sync_command(ctx: commands.Context) -> None:
-        """Sync Command."""
-        guild = ctx.guild
-        if guild is None:
-            await ctx.send("Not allowed to be used outside of guild", ephemeral=True)
-            return
-
-        synced = await ctx.bot.tree.sync()
-
-        for com in synced:
-            log.info(f"Synced: {com}")
-
-        await ctx.send(f"Synced {len(synced)} commands globally")
 
     @asynccontextmanager
     async def get_db(self) -> AsyncGenerator[AsyncSession]:
