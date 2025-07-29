@@ -20,8 +20,6 @@ from csse3200bot.utils.collections import AsyncCache, SyncCache
 
 log = logging.getLogger(__name__)
 
-REPO_CACHE_TTL = 300
-
 
 class GitHubCog(commands.GroupCog, name="gh"):
     """GitHub cog."""
