@@ -69,10 +69,39 @@ class CSSEBot(commands.Bot):
         from csse3200bot.teams.cog import TeamsCog  # noqa: PLC0415
         from csse3200bot.admin.cog import AdminCog  # noqa: PLC0415
 
+        self.add_command(self.sync_command)
+
         cogs: list[type[commands.GroupCog]] = [GitHubCog, GreetingsCog, StudioCog, TeamsCog, AdminCog]
         for cog_cls in cogs:
             log.info(f"Adding cog: {cog_cls.__name__}")
             await self.add_cog(cog_cls(self))
+
+    @staticmethod
+    @commands.command(name="sync_bot")
+    @commands.is_owner()
+    async def sync_command(ctx: commands.Context, spec: str | None = None) -> None:
+        """Sync command."""
+        bot = ctx.bot
+        if spec == "~":
+            synced = await bot.tree.sync(guild=ctx.guild)
+        elif spec == "*":
+            bot.tree.copy_global_to(guild=ctx.guild)
+            synced = await bot.tree.sync(guild=ctx.guild)
+        elif spec == "^":
+            bot.tree.clear_commands(guild=ctx.guild)
+            synced = await bot.tree.sync(guild=ctx.guild)
+        else:
+            synced = await bot.tree.sync()
+
+        guild = ctx.guild
+        if guild is None:
+            await ctx.send("Not allowed to be used outside of guild", ephemeral=True)
+            return
+
+        await ctx.send(
+            f"Synced {len(synced)} commands "
+            f"{'globally' if spec is None else f'to the current guild ({guild.name})' if spec in ['~', '*', '^'] else ''}."  # noqa: E501
+        )
 
     async def sync(self) -> int:
         """Sync Bot."""
