@@ -15,6 +15,7 @@ async def initialise_database(engine: AsyncEngine) -> None:
     from csse3200bot.database.base import BaseDBModel
     from csse3200bot.gh.models import DiscordUserModel
     from csse3200bot.studio.models import StudioGuildModel, StudioModel
+    from csse3200bot.teams.models import TeamSprintModel
 
     async with engine.begin() as conn:
         await conn.run_sync(BaseDBModel.metadata.create_all)

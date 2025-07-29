@@ -1,21 +1,21 @@
-"""Sprint services."""
+"""Team Sprint services."""
 
 from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from csse3200bot.sprint.models import SprintFeatureModel
+from csse3200bot.teams.models import TeamSprintModel
 
 
 async def get_sprint_feature(
     session: AsyncSession, studio_id: UUID, team_number: str, sprint_number: int
-) -> SprintFeatureModel | None:
+) -> TeamSprintModel | None:
     """Get a sprint features model."""
-    stmt = select(SprintFeatureModel).where(
-        SprintFeatureModel.studio_id == studio_id,
-        SprintFeatureModel.team_number == team_number,
-        SprintFeatureModel.sprint_number == sprint_number,
+    stmt = select(TeamSprintModel).where(
+        TeamSprintModel.studio_id == studio_id,
+        TeamSprintModel.team_number == team_number,
+        TeamSprintModel.sprint_number == sprint_number,
     )
     result = await session.execute(stmt)
     return result.scalars().first()
@@ -26,29 +26,29 @@ async def create_or_update_sprint_feature(
     studio_id: UUID,
     team_number: str,
     sprint_number: int,
-    features: str,
-) -> SprintFeatureModel:
+    description: str,
+) -> TeamSprintModel:
     """Create or update sprint features."""
-    stmt = select(SprintFeatureModel).where(
-        SprintFeatureModel.studio_id == studio_id,
-        SprintFeatureModel.team_number == team_number,
-        SprintFeatureModel.sprint_number == sprint_number,
+    stmt = select(TeamSprintModel).where(
+        TeamSprintModel.studio_id == studio_id,
+        TeamSprintModel.team_number == team_number,
+        TeamSprintModel.sprint_number == sprint_number,
     )
     result = await session.execute(stmt)
     existing = result.scalars().first()
 
     if existing:
-        existing.features = features
+        existing.description = description
         session.add(existing)
         await session.commit()
         await session.refresh(existing)
         return existing
 
-    sprint_feature = SprintFeatureModel(
+    sprint_feature = TeamSprintModel(
         studio_id=studio_id,
         team_number=team_number,
         sprint_number=sprint_number,
-        features=features,
+        description=description,
     )
     session.add(sprint_feature)
     await session.commit()
@@ -60,11 +60,11 @@ async def get_features_for_sprint(
     session: AsyncSession,
     studio_id: UUID,
     sprint_number: int,
-) -> list[SprintFeatureModel]:
+) -> list[TeamSprintModel]:
     """Get sprint features."""
-    stmt = select(SprintFeatureModel).where(
-        SprintFeatureModel.studio_id == studio_id,
-        SprintFeatureModel.sprint_number == sprint_number,
+    stmt = select(TeamSprintModel).where(
+        TeamSprintModel.studio_id == studio_id,
+        TeamSprintModel.sprint_number == sprint_number,
     )
     result = await session.execute(stmt)
     return list(result.scalars().all())

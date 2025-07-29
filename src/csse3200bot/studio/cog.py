@@ -117,9 +117,6 @@ class StudioCog(commands.GroupCog, name="studio"):
                     f"• GitHub Repo Name: {studio.repo_name}\n"
                     f"• Updated At: {studio.updated_at.strftime('%Y-%m-%d %H:%M:%S UTC')}\n\n"
                     f"• Created At: {studio.created_at.strftime('%Y-%m-%d %H:%M:%S UTC')}\n\n"
-                    "**Available Commands:**\n"
-                    "• `/studio_setup` - Reconfigure studio (Admin Only)\n"
-                    "• `/studio_info` - Get studio info\n"
                 ),
                 color=0x7289DA,
             )
