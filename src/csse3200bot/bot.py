@@ -79,6 +79,9 @@ class CSSEBot(commands.Bot):
 
     async def sync(self) -> int:
         """Sync Bot."""
+        synced_commands = await self.tree.sync()
+        return len(synced_commands)
+        # For later
         for guild in self._guilds:
             log.info(f"Syncing guild '{guild.id}'")
             synced_commands = await self.tree.sync(guild=guild)

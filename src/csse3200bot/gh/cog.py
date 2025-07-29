@@ -7,6 +7,7 @@ from collections.abc import Awaitable, Callable
 import discord
 from discord import app_commands
 from github.GithubException import GithubException
+from github.NamedUser import NamedUser
 from github.Repository import Repository
 
 from csse3200bot.bot import CSSEBot
@@ -42,6 +43,7 @@ class GitHubCog(CSSECog):
         # Users
         self._gh_users = {}
         self._user_cache = AsyncCache[str, DiscordUserModel](self._get_user_wrapper())
+        self._gh_user_cache = SyncCache[str, NamedUser](self._get_gh_user_wrapper())
 
     def _get_repo_wrapper(self) -> Callable[[str], Repository | None]:
         """A wrapper for getting a repo."""
@@ -64,6 +66,18 @@ class GitHubCog(CSSECog):
 
         return fetch
 
+    def _get_gh_user_wrapper(self) -> Callable[[str], NamedUser | None]:
+        """A wrapper for getting a user with github."""
+
+        def fetch(user_id: str) -> NamedUser | None:
+            try:
+                return self._bot.github_client.get_user_by_id(int(user_id))
+            except GithubException:
+                log.exception("Got an error finding a user")
+                return None
+
+        return fetch
+
     async def cog_load(self) -> None:
         """Load cog."""
         await super().cog_load()
@@ -77,6 +91,39 @@ class GitHubCog(CSSECog):
         except GithubException:
             log.exception("Couldn't find members for github org'")
             return
+
+    @app_commands.command()
+    @app_commands.checks.cooldown(1, 5.0, key=lambda i: (i.user.id))
+    async def get_gh(self, interaction: discord.Interaction) -> None:
+        """Get the github account linked to your discord account."""
+        user_id: str = str(interaction.user.id)
+        existing = await self._user_cache.get(user_id)
+
+        if existing is None or existing.gh_id is None:
+            await interaction.response.send_message("You haven't added your github yet with `/set_gh`.")
+            return
+
+        gh_user = self._gh_user_cache.get(existing.gh_id)
+        if gh_user is None:
+            await interaction.response.send_message("The linked github account cannot be found.")
+            return
+
+        embed = discord.Embed(
+            title=f"GitHub: {gh_user.login}",
+            url=gh_user.html_url,
+            description="Your linked GitHub account!",
+            color=discord.Color.blurple(),
+        )
+
+        embed.set_thumbnail(url=gh_user.avatar_url)
+        embed.add_field(name="👤 Username", value=gh_user.login, inline=True)
+
+        if gh_user.bio:
+            embed.add_field(name="📝 Bio", value=gh_user.bio, inline=False)
+
+        embed.set_footer(text=f"GitHub since {gh_user.created_at.strftime('%B %Y')} 🚀")
+
+        await interaction.response.send_message(embed=embed)
 
     @app_commands.command()
     async def set_gh(self, interaction: discord.Interaction, gh_username: str) -> None:
@@ -119,7 +166,8 @@ class GitHubCog(CSSECog):
                 ephemeral=True,
             )
             async with self._bot.get_db() as session:  # opening this again is yuck
-                await create_or_update_user_model(session, existing_gh.discord_user_id, None)
+                result = await create_or_update_user_model(session, existing_gh.discord_user_id, None)
+                self._user_cache.set(user_id, result)
             return
 
         # they've already got a github user set
@@ -132,7 +180,8 @@ class GitHubCog(CSSECog):
 
         # At this point, user doesn't have github and no one has got that account yet
         async with self._bot.get_db() as session:  # opening this again is yuck
-            await create_or_update_user_model(session, user_id, gh_user_id)
+            result = await create_or_update_user_model(session, user_id, gh_user_id)
+            self._user_cache.set(user_id, result)
         await interaction.followup.send(f"You have now set your github account to '{gh_username}'.", ephemeral=True)
 
     @app_commands.command()
