@@ -28,3 +28,7 @@ This project is a custom discord bot for CSSE3200 which will help students
 
 - For dev, `docker compose up` will probably be your go to.
 - Otherwise, you can use the provided Dockerfile to build the image for the bot and host it as you like.
+
+
+### Deployment
+- Currently GitHub Actions is used to build the docker image and then publish that to a container registry. I then have [fluxcd](https://fluxcd.io/) setup on my homelab to automatically update the k8s manifest with the new container image.
