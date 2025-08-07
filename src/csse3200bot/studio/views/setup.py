@@ -132,13 +132,14 @@ class StudioSetupView(discord.ui.View):
     async def finish_setup(self, interaction: discord.Interaction) -> None:
         """Save configuration using the view."""
         try:
+            await interaction.response.defer(thinking=True)
             if self.studio_num is None or self.repo_name is None or self.studio_year is None:
                 embed = discord.Embed(
                     title="❌ Setup Failed",
                     description="There was an error saving your studio configuration - studio num/year/repo name failed",  # noqa: E501
                     color=0xFF0000,
                 )
-                await interaction.response.edit_message(embed=embed, view=None)
+                await interaction.edit_original_response(embed=embed, view=None)
                 return
 
             guild_id: str = str(interaction.guild_id)
@@ -160,7 +161,7 @@ class StudioSetupView(discord.ui.View):
                 color=0x00FF00,
             )
 
-            await interaction.response.edit_message(embed=embed, view=None)
+            await interaction.edit_original_response(embed=embed, view=None)
             msg = f"Studio setup completed for guild {guild_id} - Studio {studio.studio_number} - {studio.studio_year}"
             log.info(msg)
 
@@ -171,6 +172,6 @@ class StudioSetupView(discord.ui.View):
                 description="There was an error saving your studio configuration. Please try again.",
                 color=0xFF0000,
             )
-            await interaction.response.edit_message(embed=embed, view=None)
+            await interaction.edit_original_response(embed=embed, view=None)
 
         self.stop()

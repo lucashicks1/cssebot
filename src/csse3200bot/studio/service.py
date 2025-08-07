@@ -44,7 +44,7 @@ async def get_studio_by_details(session: AsyncSession, year: int, number: int) -
         StudioModel.studio_number == number,
     )
     result = await session.execute(stmt)
-    return result.scalar_one_or_none()
+    return result.unique().scalar_one_or_none()
 
 
 async def create_studio(
