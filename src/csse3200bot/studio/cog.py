@@ -7,6 +7,7 @@ from discord import app_commands
 from discord.ext import commands
 
 from csse3200bot.bot import CSSEBot
+from csse3200bot.constants import STUDENT_ROLE, TUTOR_ROLES
 from csse3200bot.studio.utils import studio_required
 from csse3200bot.studio.views import StudioSetupView
 
@@ -64,6 +65,43 @@ class StudioCog(commands.GroupCog, name="studio"):
             log.info(f"Setup message sent to {setup_channel.name} in {guild.name}")
         except Exception:
             log.exception(f"Failed to send setup message to {guild.name}")
+
+    @app_commands.command(name="clean", description="Cleans up the studio, configuring all default roles, etc.")
+    @app_commands.checks.has_permissions(manage_guild=True)
+    async def studio_clean(self, interaction: discord.Interaction) -> None:
+        """Assigns STUDENT_ROLE to all members who do not have any TUTOR_ROLES."""
+        guild = interaction.guild
+        if guild is None:
+            await interaction.response.send_message("This command can only be used in a server", ephemeral=True)
+            return
+
+        student_role = discord.utils.get(guild.roles, name=STUDENT_ROLE)
+        tutor_roles = [discord.utils.get(guild.roles, name=role) for role in TUTOR_ROLES]
+
+        if student_role is None:
+            await interaction.response.send_message(f"Student role '{STUDENT_ROLE}' not found.", ephemeral=True)
+            return
+
+        updated_members = []
+        for member in guild.members:
+            # skip bots
+            if member.bot:
+                continue
+
+            # check if member has any tutor role
+            if any(role in member.roles for role in tutor_roles if role is not None):
+                continue
+
+            if student_role not in member.roles:
+                try:
+                    await member.add_roles(student_role, reason="Studio clean-up: Assigning student role")
+                    updated_members.append(member.display_name)
+                except Exception:
+                    log.exception(f"Failed to assign student role to {member.display_name}")
+
+        await interaction.response.send_message(
+            f"Studio clean-up complete. Assigned '{STUDENT_ROLE}' to {len(updated_members)} member(s).", ephemeral=True
+        )
 
     @app_commands.command(name="setup", description="Set up or reconfigure the studio")
     @app_commands.checks.has_permissions(manage_guild=True)
